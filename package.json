@@ -1,0 +1,22 @@
+{
+    "name": "firedata",
+    "version": "0.0.0",
+    "author": "Asacreative Technology Indonesia <info@asacreative.com>",
+    "description": "Firebase concat for importing data",
+    "bin": {
+        "firedata": "bin/firedata"
+    },
+    "dependencies": {
+        "chalk": "^1.1.1",
+        "fs-extra-promise": "^0.3.0",
+        "lodash": "^3.10.1",
+        "traverse": "^0.6.6"
+    },
+    "main": "index.js",
+    "devDependencies": {},
+    "scripts": {
+        "firedata": "./firedata"
+    },
+    "cordovaPlugins": [],
+    "cordovaPlatforms": []
+}

@@ -1,0 +1,131 @@
+#!/usr/bin/env node
+
+/*
+ * @Author: Ridwan Abadi
+ * @Date:   2015-10-22 15:22:55
+ * @Last Modified by:   Ridwan Abadi
+ * @Last Modified time: 2015-10-22 18:13:20
+ */
+
+(function() {
+
+    'use strict';
+
+    /**
+     * firedata
+     * @type {Object}
+     */
+    var firedata = {}
+
+    /**
+     * Chalk Utility
+     * @type {Object}
+     */
+    var chalk = require('chalk');
+
+    /**
+     * File System Utility
+     * @type {Object}
+     */
+    var fs = require('fs-extra-promise')
+
+    /**
+     * Traverse Utility
+     * @type {Object}
+     */
+    var traverse = require('traverse')
+
+    /**
+     * Lodash Utility
+     * @type {Object}
+     */
+    var _ = require('lodash')
+
+    /**
+     * Argument passed by user
+     * @type {Array}
+     */
+    var args = process.argv.slice(2);
+
+    /**
+     * working derectory
+     * @type {String}
+     */
+    var workingDir = process.cwd();
+
+    /**
+     * [log description]
+     * @param  {[type]} text [description]
+     * @return {[type]}      [description]
+     */
+    var log = function(text, raw) {
+
+        return (!raw) ? console.log(chalk.red.bold('Firedata:: ' + chalk.white(text))) : console.log(text)
+    }
+
+    /**
+     * [run description]
+     * @return {[type]} [description]
+     */
+    firedata.run = function() {
+
+        log('Running..')
+
+        firedata
+            .path(workingDir + '/' + args[0])
+            .then(function(config) {
+
+                log('Path "' + config + '" found')
+
+                return firedata.build(require(config))
+
+            })
+            .then(function(data) {
+
+                var targetFile = args[1]
+
+                return [targetFile, fs.outputJson(targetFile, data)]
+            })
+            .then(function(output) {
+
+                log('File "' + output[0] + '" created')
+            })
+            .catch(function(err) {
+                console.log(chalk.red.bold('Error:: '));
+                console.log(err);
+            })
+    }
+
+    /**
+     * [path description]
+     * @param  {[type]} argument [description]
+     * @return {[type]}          [description]
+     */
+    firedata.path = function(path) {
+        return fs.realpathAsync(path)
+    }
+
+    /**
+     * [build description]
+     * @param  {[type]} obj [description]
+     * @return {[type]}     [description]
+     */
+    firedata.build = function(obj) {
+
+        return new Promise(function(resolve, reject) {
+
+            var data = traverse(obj).map(function(x) {
+
+                if (typeof x === "function") {
+
+                    this.update(x())
+                }
+            })
+
+            resolve(data)
+        })
+    }
+
+    return firedata.run()
+
+}).call(this)
