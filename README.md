@@ -1,4 +1,30 @@
 # firedata
+---
+
+# Requirements
+- node v0.12 or newer
+
+# Installation
+npm :
+```bash
+npm install -g firedata
+```
+
+manual :
+```bash
+git clone https://github.com/asacreative/firedata
+cd firedata
+npm install
+npm link
+```
+
+# Usage
+
+```
+firedata path/to/file.js path/to/output.json
+```
+
+all path is relative to current directory
 
 # TODO
 - Add more detailed README
