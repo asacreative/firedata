@@ -1,6 +1,6 @@
 {
     "name": "firedata",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "Asacreative Technology Indonesia <info@asacreative.com>",
     "description": "Firebase concat for importing data",
     "bin": {
@@ -17,6 +17,13 @@
     "scripts": {
         "firedata": "./firedata"
     },
-    "cordovaPlugins": [],
-    "cordovaPlatforms": []
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/asacreative/firedata.git"
+    },
+    "bugs": {
+        "url": "https://github.com/asacreative/firedata/issues"
+    },
+    "preferGlobal": true
 }
