@@ -1,10 +1,3 @@
-/*
- * @Author: abi
- * @Date:   2015-10-22 11:41:03
- * @Last Modified by:   Ridwan Abadi
- * @Last Modified time: 2015-10-22 18:23:23
- */
-
 (function() {
 
     'use strict';
@@ -16,22 +9,56 @@
     var fs = require('fs')
 
     /**
+     * [fetch description]
+     * @type {[type]}
+     */
+    var fetch = require('node-fetch')
+
+    /**
      * [config description]
      * @type {Object}
      */
     var config = {
 
-        alquran: {
+        users: {
 
-            arabic: function() {
+            github: function() {
 
-                return ['test', 'test1', function() {
+                return ['user', 'user1', function() {
 
-                    return 'test3'
+                    return ['user3', new Promise(function(resolve, reject) {
+
+                        fetch('https://api.github.com/users/asacreative').then(function(res) {
+
+                            return res.json();
+
+                        }).then(function(body) {
+
+                            resolve(body);
+                        });
+                    })]
                 }]
             },
 
-            indonesia: ['ind1', 'ind2', 'ind4']
+            others: ['user4', 'user5', 'user6'],
+
+            strings: new Promise(function(resolve, reject) {
+
+                setTimeout(function() {
+
+                    resolve(['this is new string', 'another new string', new Promise(function(resolve) {
+
+                        setTimeout(function() {
+
+                            resolve(['123', 321, 125123])
+
+                        }, 2000)
+                    })])
+
+                }, 1000)
+            }),
+
+            directString: 'this is direct string value'
 
         }
 

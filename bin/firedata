@@ -24,6 +24,12 @@
     var chalk = require('chalk');
 
     /**
+     * Chalk Utility
+     * @type {Object}
+     */
+    var _ = require('lodash');
+
+    /**
      * File System Utility
      * @type {Object}
      */
@@ -33,13 +39,13 @@
      * Traverse Utility
      * @type {Object}
      */
-    var traverse = require('traverse')
+    var traverse = require('traverse-async').traverse
 
     /**
-     * Lodash Utility
-     * @type {Object}
+     * [traverseSync description]
+     * @type {[type]}
      */
-    var _ = require('lodash')
+    var traverseSync = require('traverse')
 
     /**
      * Argument passed by user
@@ -71,29 +77,30 @@
 
         log('Running..')
 
-        firedata
-            .path(workingDir + '/' + args[0])
-            .then(function(config) {
+        firedata.path(workingDir + '/' + args[0])
 
-                log('Path "' + config + '" found')
+        .then(function(config) {
 
-                return firedata.build(require(config))
+            log('Path "' + config + '" found')
 
-            })
-            .then(function(data) {
+            return firedata.build(require(config))
 
-                var targetFile = args[1]
+        }).then(function(data) {
 
-                return [targetFile, fs.outputJson(targetFile, data)]
-            })
-            .then(function(output) {
+            var targetFile = args[1]
 
-                log('File "' + output[0] + '" created')
-            })
-            .catch(function(err) {
-                console.log(chalk.red.bold('Error:: '));
-                console.log(err);
-            })
+            return [targetFile, fs.outputJson(targetFile, data)]
+
+        }).then(function(output) {
+
+            log('File "' + output[0] + '" created')
+        
+        }).catch(function(err) {
+
+            console.log(chalk.red.bold('Error:: '))
+
+            console.log(err)
+        })
     }
 
     /**
@@ -102,6 +109,7 @@
      * @return {[type]}          [description]
      */
     firedata.path = function(path) {
+
         return fs.realpathAsync(path)
     }
 
@@ -114,15 +122,138 @@
 
         return new Promise(function(resolve, reject) {
 
-            var data = traverse(obj).map(function(x) {
+            var targetFile = args[1]
 
-                if (typeof x === "function") {
+            /**
+             * @param {[type]}
+             * @param {[type]}
+             * @param {[type]}
+             */
+            function setValueToObject(object, key, value) {
 
-                    this.update(x())
-                }
+                var node = object;
+
+                var i = 1
+
+                key.map(function(item, index) {
+
+                    (node[item]) ? '' : node[item] = {}
+
+                    if (i === _.size(key)) {
+
+                        node[item] = value
+
+                    } else {
+
+                        node = node[item]
+                    }
+
+                    i++
+                })
+            }
+
+            /**
+             * @param  {[type]}
+             * @return {[type]}
+             */
+            function walkConfig(config) {
+
+                return new Promise(function(resolve, reject) {
+
+                    var data = {}
+
+                    /**
+                     * @param  {[type]}
+                     * @return {[type]}
+                     */
+                    function walk(config) {
+
+                        traverse(config, function(value, next) {
+
+                          var key
+                          var parent
+                          var path;
+                          var context = this
+
+                          if (typeof value === 'function') {
+
+                            setValueToObject(data, context.path, value())
+
+                            next()
+
+                          } else if (typeof value.then === 'function') {
+
+                            value.then(function (result){
+                                
+                                setValueToObject(data, context.path, result)
+
+                                next()
+                            })
+
+                          } else {
+
+                            setValueToObject(data, context.path, value)
+
+                            next()
+                          }
+
+                        }, function() {
+
+                            if (checkStatusWalk(data)) {
+
+                                walk(data)
+
+                            } else {
+
+                                resolve(data)
+                            }
+                        })
+                    }
+
+                    /**
+                     * @param  {[type]}
+                     * @return {[type]}
+                     */
+                    function checkStatusWalk(config) {
+
+                        var status = false
+
+                        traverseSync(config).map(function(item) {
+
+                            if (status) {
+
+                                return true
+                            }
+
+                            var context = this
+
+                            if (context.isLeaf) {
+
+                                if(item && (typeof item === 'function' || typeof item.then === 'function')) {
+
+                                    status = true
+                                }
+                            }        
+                        })
+
+                        return status
+                    }
+
+                    if (checkStatusWalk(config)) {
+
+                        walk(config)
+                    }
+                })
+            }
+
+            var promises = {}
+
+            var data = {}
+
+            walkConfig(obj).then(function(data){
+
+                resolve(data)
             })
-
-            resolve(data)
         })
     }
 
